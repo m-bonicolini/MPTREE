@@ -1,0 +1,138 @@
+Proxy_sender(1)
+
+NAME
+	Proxy_sender Manual
+
+SYNOPSYS
+	Proxy_sender --[OPTIONS]
+	Proxy_sender [client_listening_port]  [ip1 port1] [ip2 port2]  [ip3 port3]
+
+DESCRIPTION
+
+	Proxy_sender is a net utility coded with C language that communicate 
+	with Proxy_receiver. It support communications with a max of three channels and 
+	it is optimized for channels with RTT <= of one sec.If no option is passed 
+	Proxy_sender do listening from port 6001 at ip 127.0.0.1 , and try to 
+	connect 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003.
+	Proxy_sender have 6 strategy of sending and the strategy adopted is 
+	known at compile time.For strategy comparison see STRATEGY section.
+
+OPTIONS
+	If no option is passed Proxy_sender start with default value
+	EXAMPLE:
+		./Proxy_sender 
+
+	-man  print this man page
+	EXAMPLE:
+		./Proxy_sender -man
+
+	
+	-help print fast help
+	EXAMPLE:
+		./Proxy_sender -help
+
+	STANDARD:
+	   all connections args
+	EXAMPLE:
+		./Proxy_sender 6001 127.0.0.1 7001 127.0.0.1 7002 127.0.0.1 7003 
+
+PACKET HEADER
+		--------------------------------
+		|				|
+	2 bytes	|	TYPE OF PACKET		|
+		 -------------------------------
+		|				|
+	2 bytes	|	SERIAL NUMBER		|
+		 -------------------------------
+		|				|
+	2 bytes |	DATA LENGTH		|
+		 -------------------------------
+		|				|
+		|	  DATA 			|
+		|				|
+	
+	TYPE OF PACKET:
+			DATA : is data packet
+			QUIT : is quit packet 
+			ACK  : is ack packet
+			DATA : is data of packet max data size is 1018
+	
+	MIN packet size 6 bytes	
+	MAX packet size 1024
+	
+STRATEGY
+
+	Strategy adopted by Proxy is decretated at compile time by  
+	Proxy_configure. The congestioned value is used to stop reading when 
+	communication delay is in the upper bound. Protocol use read_ack() 
+	function to increase or dercase size of packet in a session and 
+	when one packet have RTT > 0.8 the channel ack_lock variable is setted 
+	to OFF.
+
+	The default read_ack act like this:
+
+	PACKET(1)----------------------------------------------------->0.2 sec
+	0.2 sec <-----------------------------------------------------ACK(2)
+
+	RTT=0.4 sec
+	max size of packet is over of 64 bytes. ack_lock for this channel is ON.
+	
+
+	PACKET(2) -----------------------------------------------------> 0.5 sec
+	0.5 sec	<------------------------------------------------------ACK(2)
+	
+	RTT=1 sec
+	max size is reduced to 64. ack_lock for this channel is OFF
+	
+	LIST OF SENDING STRATEGY
+
+
+	SENDA:
+		Sending and Reading is not performed only with congestioned value.
+		When ack_lock of one channel is OFF(one ack RTT> 0.8sec)
+		a new selected speed i setted and ack_lock is restored only when 
+		first packet RTT is <  0.9. Permission for writing is global. 
+		This strategy is suggested when the network delay can be descrybed 
+		with a cyclical and continual function.
+		
+	SENDB:
+        ack_lock of one channel is set OFF or ON only for it. If the RTT 
+        delay is  <  0.9 sec ack_lock and write permission for this channel 
+        is setted to ON else OFF.
+		Congestioned value is divided by 3 when write permission is OFF.
+		If all channel are down congestioned is divided by 27.
+		It is a very severe algorithm and it is suggested when the delay 
+		can not be descrybed with any type of funtion or when network
+		is always congestioned.
+	SENDC:
+		ack_lock is always setted to ON.Congestioned value is upgrade when
+		RTT is <0.9 sec. Write permission is set ON or OFF for single channel.
+		This strategy can be used for all types of network.
+	SENDD:
+		read ack is ON  when RTT <0.8 and if the mcurrent size of packet 
+		is < 600, size doble.
+		If channel have no problem it is a nice algorithm but with some
+		critical delay is not good.
+	SENDE:
+		This strategy is similar to SENDA but read_ack() decrase by 128 not 64.
+		Write permission is custom for each channel.
+	SENDF:
+		This strategy is a sintetical form of A but write permission 
+		is customized
+		
+
+CONFORMING
+	This program is a University project and is not a standard.
+	Program is developed to run  with all POSIX 2001 system.
+	It is successfull tested on Gentoo Linux pcc32 (ibook G4),
+ 	on Gentoo linux i686(Pentium III), on Debian i386 lenny(Pentium III)
+	on Mac OSX Tiger(10.4) ppc32 (ibook g4).
+BUGS
+	The third channel has a low usage.For other bugs please write to
+	bonicol2@cs.unibo.it agentile@cs.unibo.it dallatorre@cs.unibo.it
+
+AUTHORS
+		Matteo Bonicolini Alessandro Gentile Dennis Dalla Torre
+
+	The software is commissioned by Vittorio Ghini for Computer Network  
+	exam at University of Bologna (Computer Science)
