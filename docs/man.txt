@@ -9,13 +9,13 @@ SYNOPSYS
 
 DESCRIPTION
 
-	Proxy_sender is a net utility coded with C language that communicate 
-	with Proxy_receiver. It support communications with a max of three channels and 
-	it is optimized for channels with RTT <= of one sec.If no option is passed 
-	Proxy_sender do listening from port 6001 at ip 127.0.0.1 , and try to 
-	connect 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003.
-	Proxy_sender have 6 strategy of sending and the strategy adopted is 
-	known at compile time.For strategy comparison see STRATEGY section.
+	Proxy_sender is a C language net utility that communicate with Proxy_receiver. 
+	It support multihomed communications with three channels and 
+	it is optimized for channels with RTT <= 1 sec. If no option is passed 
+	Proxy_sender do listening from port 6001 at ip 127.0.0.1 , and it try to 
+	connect to 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003.
+	Proxy_sender implement six sending strategy  decretated at compile time.
+	For info about strategy see STRATEGY section.
 
 OPTIONS
 	If no option is passed Proxy_sender start with default value
@@ -38,18 +38,18 @@ OPTIONS
 
 PACKET HEADER
 		--------------------------------
-		|				|
-	2 bytes	|	TYPE OF PACKET		|
+		|				                |
+2 bytes	|	TYPE OF PACKET		        |
 		 -------------------------------
-		|				|
-	2 bytes	|	SERIAL NUMBER		|
+		|				                |
+2 bytes	|	SERIAL NUMBER		        |
 		 -------------------------------
-		|				|
-	2 bytes |	DATA LENGTH		|
+		|				                |
+2 bytes |	DATA LENGTH		            |
 		 -------------------------------
-		|				|
-		|	  DATA 			|
-		|				|
+		|				                |
+		|	  DATA 			            |
+		|				                |
 	
 	TYPE OF PACKET:
 			DATA : is data packet
@@ -62,11 +62,11 @@ PACKET HEADER
 	
 STRATEGY
 
-	Strategy adopted by Proxy is decretated at compile time by  
-	Proxy_configure. The congestioned value is used to stop reading when 
+	The strategy is decretated at compile time by  Proxy_configure. 
+	The congestioned value is used to stop reading when 
 	communication delay is in the upper bound. Protocol use read_ack() 
-	function to increase or dercase size of packet in a session and 
-	when one packet have RTT > 0.8 the channel ack_lock variable is setted 
+	function to increase or dercase packet size in a session and 
+	when one packet have RTT > 0.8 sec the ack_lock variable is setted 
 	to OFF.
 
 	The default read_ack act like this:
@@ -90,49 +90,45 @@ STRATEGY
 	SENDA:
 		Sending and Reading is not performed only with congestioned value.
 		When ack_lock of one channel is OFF(one ack RTT> 0.8sec)
-		a new selected speed i setted and ack_lock is restored only when 
-		first packet RTT is <  0.9. Permission for writing is global. 
-		This strategy is suggested when the network delay can be descrybed 
-		with a cyclical and continual function.
+		a new selected speed is setted and ack_lock is restored only when 
+		first packet RTT is <  0.9 sec. Permission for writing is global. 
+		This strategy is suggested when the network delay is  a periodic 
+		and continual function.
 		
 	SENDB:
-        ack_lock of one channel is set OFF or ON only for it. If the RTT 
-        delay is  <  0.9 sec ack_lock and write permission for this channel 
-        is setted to ON else OFF.
+        If the RTT delay is  <  0.9 sec ack_lock and write permission for 
+        this channel are setted to ON otherwise OFF.
 		Congestioned value is divided by 3 when write permission is OFF.
-		If all channel are down congestioned is divided by 27.
+		If all channel are down congestioned value is divided by 27.
 		It is a very severe algorithm and it is suggested when the delay 
-		can not be descrybed with any type of funtion or when network
+		can not be described with any type of funtion or when network
 		is always congestioned.
 	SENDC:
-		ack_lock is always setted to ON.Congestioned value is upgrade when
-		RTT is <0.9 sec. Write permission is set ON or OFF for single channel.
-		This strategy can be used for all types of network.
+		ack_lock is always setted to ON. Congestioned value is setted when
+		RTT is <0.9 sec. For each single channel Write permission is ON 
+		or OFF. This strategy can be used for all types of network.
 	SENDD:
-		read ack is ON  when RTT <0.8 and if the mcurrent size of packet 
-		is < 600, size doble.
-		If channel have no problem it is a nice algorithm but with some
-		critical delay is not good.
+		read ack is ON  and when RTT <0.8 sec if the current size of packet 
+		is < 600 bytes, it is doubled by size. If channel  is fast it is a nice algorithm 
+		otherwise no.
 	SENDE:
-		This strategy is similar to SENDA but read_ack() decrase by 128 not 64.
+		This strategy is similar to SENDA but read_ack() decrase by 128 byes not 64 bytes.
 		Write permission is custom for each channel.
 	SENDF:
-		This strategy is a sintetical form of A but write permission 
-		is customized
+		This strategy is similar to A but write permission is customized
 		
 
 CONFORMING
-	This program is a University project and is not a standard.
-	Program is developed to run  with all POSIX 2001 system.
+	This program is a University project and it is not a standard.
+	The software is developed to run  with all POSIX 2001 system.
 	It is successfull tested on Gentoo Linux pcc32 (ibook G4),
  	on Gentoo linux i686(Pentium III), on Debian i386 lenny(Pentium III)
-	on Mac OSX Tiger(10.4) ppc32 (ibook g4).
+	on Mac OSX Tiger(10.4) with ppc32 (ibook G4).
 BUGS
-	The third channel has a low usage.For other bugs please write to
-	bonicol2@cs.unibo.it agentile@cs.unibo.it dallatorre@cs.unibo.it
+	The third channel has a low usage.
 
 AUTHORS
-		Matteo Bonicolini Alessandro Gentile Dennis Dalla Torre
+    Matteo Bonicolini Alessandro Gentile Dennis Dalla Torre
 
 	The software is commissioned by Vittorio Ghini for Computer Network  
 	exam at University of Bologna (Computer Science)
