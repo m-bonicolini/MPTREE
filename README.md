@@ -1,6 +1,6 @@
 # MPTREE
 
-It is a prototype of a multihoming proxy written in C. The goal is to implement a multihoming protocol with TCP as transport protocol and a proxy system that act like SCTP o Multipath-TCP at application level. It was coded in 2008 as Computer Network exam and now it need an hard refactor. This repository may be a try to continue the project and to boost it as a net utility application for *nix. 
+It is a prototype of a multihoming proxy written in ANSI C89. The goal is to implement a multihoming protocol with TCP as transport protocol and a proxy system that act like SCTP o Multipath-TCP at application level. It was coded in 2008 as Computer Network exam and now it need an hard refactor. This repository may be a try to continue the project and to boost it as a net utility application for *nix. 
 
 The program run in Linux,NetBSD,FreeBSD,OpenBSD and MAC OS X. The project may be a prototype for a research in the multihoming network.
 
