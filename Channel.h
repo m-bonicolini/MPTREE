@@ -27,7 +27,7 @@ struct chan
 	long int score;	   /*channel MTU*/
 	int losed;
 	unsigned long int ip; /*obsolete*/
- #else	/*if is ILP64  integer is 64 bits*/
+ #else	/*if it is ILP64  int is 64 bits*/
 	int available;	
 	int ack_lock;		
 	int success;				

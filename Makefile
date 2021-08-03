@@ -1,7 +1,7 @@
-GCCFLAGS= -Wall  -pedantic -ggdb
+GCCFLAGS= -Wall -std=c89 -D_DEFAULT_SOURCE -pedantic -ggdb
 
 
-all: Proxy_configure Proxy_sender Proxy_reciver
+all: Proxy_configure Proxy_sender Proxy_receiver
 
 Proxy_configure: Proxy_Configure.o
 		gcc -o Proxy_configure ${GCCFLAGS} Proxy_Configure.o
@@ -17,11 +17,11 @@ Proxy_sender:	Proxy_sender.o Message.o queue.o l_list.o Channel.o Packet.o Net_U
 Proxy_sender.o: Proxy_sender.c Net_Util.h
 		gcc -c  ${GCCFLAGS} Proxy_sender.c
 
-Proxy_reciver:   Proxy_reciver.o Message.o queue.o l_list.o Channel.o Packet.o Net_Util.o	
-		gcc -o Proxy_reciver ${GCCFLAGS} Proxy_reciver.o Message.o queue.o l_list.o Channel.o Packet.o Net_Util.o
+Proxy_receiver:   Proxy_receiver.o Message.o queue.o l_list.o Channel.o Packet.o Net_Util.o	
+		gcc -o Proxy_receiver ${GCCFLAGS} Proxy_receiver.o Message.o queue.o l_list.o Channel.o Packet.o Net_Util.o
 
-Proxy_reciver.o: Proxy_reciver.c Net_Util.h 
-		gcc -c  ${GCCFLAGS} Proxy_reciver.c
+Proxy_receiver.o: Proxy_receiver.c Net_Util.h 
+		gcc -c  ${GCCFLAGS} Proxy_receiver.c
 			 
 Net_Util.o:      Net_Util.c  l_list.h Packet.h Channel.h	
 		
@@ -43,9 +43,9 @@ Message.o:      Message.c Proxy_config.h
 		gcc -c ${GCCFLAGS} Message.c
 
 clean:
-	rm -f *.o
-	rm -f Proxy_sender
-	rm -f Proxy_reciver
-	rm -f Proxy_configure
+	rm -f *.o >> /dev/null
+	rm -f Proxy_sender >> /dev/null
+	rm -f Proxy_receiver >> /dev/null
+	rm -f Proxy_configure >> /dev/null
 	clear 
 

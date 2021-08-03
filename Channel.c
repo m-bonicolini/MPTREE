@@ -145,7 +145,7 @@ static void print_chan(channel *c,int send)
 	
 	printf(RED" I print Channel stats \n"NORMAL);
 	fflush(stdout);
-#if defined(PROXY_LP32)
+#if defined(PROXY_LP32) 
 		
 		printf(GREEN" listenfd= %d\n"NORMAL,c->r_fd);
 		fflush(stdout);
@@ -175,7 +175,7 @@ static void print_chan(channel *c,int send)
 		fflush(stdout);
 #endif	
 		
-			printf(RED" end of CHANNEL \n"NORMAL);
+		printf(RED" end of CHANNEL \n"NORMAL);
 		fflush(stdout);
 	return ;
 }
@@ -195,6 +195,6 @@ void print_channel_q(channel *c)
 }
 #else
 
-#error NO C 89 capable compiler
+#error NO C89 compiler
 
 #endif

@@ -559,7 +559,7 @@ queue* add_to_head(queue* q, void* item,const int size)
 
 int add_to_item(queue* q, void *data,int size)
 {
-	queue* tmp=NULL;
+	/*queue* tmp=NULL;*/
 	byte *n=NULL;
 	byte *p=NULL;
 	short int dim;
@@ -593,7 +593,7 @@ int add_to_item(queue* q, void *data,int size)
 	n=&n[dim];
 	memcpy(n,data,size);
 	n=NULL;
-	tmp=NULL;
+/*	tmp=NULL;*/
 #ifdef PROXY_DEBUG
 	printf("I'm exit \n");
 	fflush(stdout);

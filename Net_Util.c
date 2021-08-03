@@ -7,10 +7,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <unistd.h>
-
-
 #include "Net_Util.h"
-
 
 struct timeval differenza(struct timeval dopo,struct timeval prima)
 {
@@ -64,51 +61,51 @@ static int is_sockop(int s_opt)
 {
 #ifdef PROXY_LINUX
 	if(s_opt==SO_RCVBUFFORCE ||
-		s_opt==SO_RCVLOWAT      ||
+		s_opt==SO_RCVLOWAT   ||
 		s_opt==SO_PEERCRED
 	)return 1;
 #endif 
-	if(s_opt==SO_BROADCAST    	||
-		s_opt==SO_DEBUG 			  	||
+
+	if( s_opt==SO_BROADCAST    	||
+		s_opt==SO_DEBUG 	    ||
 		s_opt==SO_DONTROUTE   	||
-		s_opt==SO_KEEPALIVE     	||
-		s_opt==SO_LINGER			  	||
+		s_opt==SO_KEEPALIVE     ||
+		s_opt==SO_LINGER	    ||
 		s_opt==SO_ACCEPTCONN	||
 		s_opt==SO_OOBINLINE	   	||
 		s_opt==SO_REUSEADDR )
 	return 1;/*binary opt*/
 	if(s_opt==SO_SNDBUF    		|| 
-		s_opt==SO_RCVBUF 		  	|| 
-		s_opt==SO_SNDLOWAT  		|| 
+		s_opt==SO_RCVBUF 		|| 
+		s_opt==SO_SNDLOWAT      || 
 		s_opt==SO_RCVLOWAT)
 	return 2;/*non binary opt*/
-	else return 0;/*error invalid option or 
-		option is not supported by proxy_setsock()*/
+	else return 0;/*error invalid option or option is not supported by proxy_setsock()*/
 }
 
 
 
 /*check if option is a tcp_option (IP_PROTO...)
-  Is auxiliary function of proxy_sock_opt*/
+  It is an auxiliary function of proxy_sock_opt*/
 static int is_tcp_opt(int t_opt)
 {
 	#ifdef PROXY_LINUX
-	if(t_opt==TCP_CORK    					||
-		t_opt==TCP_DEFER_ACCEPT		||
-		t_opt==TCP_INFO						||
-		t_opt==TCP_QUICKACK				||
+	if( t_opt==TCP_CORK    		  ||
+		t_opt==TCP_DEFER_ACCEPT	  ||
+		t_opt==TCP_INFO			  ||
+		t_opt==TCP_QUICKACK		  ||
 		t_opt==TCP_WINDOW_CLAMP)
 	return 1;/*Binary Option*/
-	if(	t_opt==TCP_KEEPCNT				||
-			t_opt==TCP_KEEPIDLE				||
-			t_opt==TCP_KEEPINTVL			||	
+	if(	t_opt==TCP_KEEPCNT		  ||
+			t_opt==TCP_KEEPIDLE	  ||
+			t_opt==TCP_KEEPINTVL  ||	
 			t_opt==TCP_LINGER2					)
 	return 2;/*non binary opt*/
 	#endif
 	
 	if(t_opt==TCP_NODELAY) return 1;
 	
-	if(	t_opt==TCP_MAXSEG ) return 2;
+	if(t_opt==TCP_MAXSEG ) return 2;
 	
 	return 0;
 }
@@ -129,30 +126,25 @@ int proxy_sock_opt(int socket ,int socket_op,int value,int* myerror)
 	
 	
 	check=is_sockop(socket_op);
-	if(check>0)/*if is socket option*/
+	if(check>0)/*it is a socket option*/
 	{
-		/*u have pass a non binary value 
-		  in a binary option socket 						*/
 		if(check_binary(value)==0 && check==1)
 		{
 			e_warning("You must pass 1 or 0 value",0);
 			return 0;/*error*/
 		}
+
+		if(socket_op==SO_LINGER)
+			check= setsockopt(socket, SOL_SOCKET, socket_op, (char *)&opt_val, sizeof(struct linger));
 		else
+			check= setsockopt(socket, SOL_SOCKET, socket_op, (char *)&opt_val, sizeof(int));
+		*myerror=errno;
+		if(check!=0)
 		{
-			if(socket_op==SO_LINGER)
-				check= setsockopt(socket, SOL_SOCKET, socket_op, (char *)&opt_val, sizeof(struct linger));
-			else
-				check= setsockopt(socket, SOL_SOCKET, socket_op, (char *)&opt_val, sizeof(int));
-			*myerror=errno;
-			if(check!=0)
-			{
-				if(*myerror==EFAULT || *myerror==EINVAL)
-				e_fatal("proxy_sockopt()",*myerror);
-				else return 0;
-			}
-			else return 1;
+			if(*myerror==EFAULT || *myerror==EINVAL) e_fatal("proxy_sockopt()",*myerror);
+			else return 0;
 		}
+		else return 1;
 	}
 	else
 	{
@@ -242,25 +234,11 @@ static int p_listening(int *listenfd, char *string_IP, int port,const int s_buf,
 	if(listenfd==NULL||myerror==NULL||string_IP==NULL)
 	{
 		e_warning("You have pass a null in one (or more) pointer of proxy_listening()",0);
-		/*
-		#if defined(PROXY_DEBUG_LOG)
-		log=fopen("proxyS.log",a);
-		fputs("\n [debug p_listening] bad args \n");
-		fclose(log);
-		#endif*/
-		
 		return 0;		
 	}
 	if(s_buf<=0 || r_buf<=0)
 	{
 		e_warning("you have pass a 0 or <0 number in one(or more) buffer option",0);
-		/*
-		#if defined(PROXY_DEBUG_LOG)
-		log=fopen("proxyS.log",a);
-		fputs("\n [debug p_listening] bad args \n");
-		fclose(log);
-		#endif*/
-		
 		return 0;
 	}
 #endif
@@ -270,25 +248,11 @@ static int p_listening(int *listenfd, char *string_IP, int port,const int s_buf,
 	if(*listenfd==-1)	
 	{
 		if(*myerror==EMFILE) e_fatal("Proxy_listening()",*myerror);
-		else 
-		{
-			/*#if defined(PROXY_DEBUG_LOG)
-			log=fopen("proxyS.log",a);
-			fputs("\n [debug p_listening] \n");
-			fclose(log);
-			#endif*/
-			
-			return 0;
-		}
-	}
-/*
-#if defined(PROXY_DEBUG_LOG)
-	log=fopen("proxyS.log",a);
-	fputs("[debug p_listening] listenfd after socket()=%d",*listenfd);
-	fclose(log);
-#endif*/
- 
 
+		return 0;
+		
+	}
+ 
 #ifdef PROXY_DEBUG
 	printf(RED"After socket() listenfd=%d\n"NORMAL,*listenfd);
 #endif
@@ -582,13 +546,13 @@ static int p_connect(int* serverfd,char* remote_IP,int port,int s_buf,int r_buf,
 	
 	memset (&local, 0x00, sizeof(local));
 	local.sin_family=AF_INET;
-	#ifdef PROXY_BIG
+#ifdef PROXY_BIG
 	local.sin_addr.s_addr=INADDR_ANY; 
 	local.sin_port=0;
-	#else
+#else
 	local.sin_addr.s_addr=htonl(INADDR_ANY);
 	local.sin_port=htons(0);
-	#endif
+#endif
 	check=bind(*serverfd,(SO_A*)&local,sizeof(local));
 	*myerror=errno;
 	if(check<0) return 0;
@@ -618,7 +582,8 @@ static int p_connect(int* serverfd,char* remote_IP,int port,int s_buf,int r_buf,
 	if(check<0)
 	{
 		if(*myerror==EFAULT) e_fatal("connect()",*myerror);
-		else return 0;			
+		
+		return 0;			
 	}
 	printf (GREEN"connected to %s %d\n"NORMAL, remote_IP, port);
 	fflush(stdout);
@@ -637,7 +602,7 @@ int proxy_connect(char *remote_IP,int port)
 	if(res<0 || myerror>0)e_fatal("connect failed",myerror);
 		
 	if(fd>0) return fd;
-	else      return -1;
+	else     return -1;
 }
 
 int advanced_connect(char* remote_IP,int port,int s_buff,int r_buff)
@@ -681,8 +646,7 @@ int set_tcpnodelay(int fd)
 		myerror=errno;
 		if(check!=0)
 		{
-			if(myerror==EFAULT || myerror==EINVAL)
-			e_fatal(NULL,0);
+			if(myerror==EFAULT || myerror==EINVAL) e_fatal(NULL,0);
 			else 
 			{
 				e_warning(NULL,myerror);
@@ -734,9 +698,9 @@ int disable_tcpnodelay(int fd)
 		myerror=errno;
 		if(check==0 || myerror>0)	
 		{
-			#ifdef PROXY_DEBUG
+#ifdef PROXY_DEBUG
 			e_warning("i can not disable tcpnodelay option",myerror);
-			#endif
+#endif
 			return 0;
 		}
 	}
@@ -813,14 +777,6 @@ int send_packet(int fd,packet *p)
 		e_fatal("packet len <= or > 1024 packet is malformed",0);
 	
 	b=(byte*)buffer;
-
-/*	
-#ifndef PROXY_BIG
-	p->type=ntohs(p->type);
-	p->serial=ntohs(p->serial);
-	p->len=ntohs(p->len);
-#endif 
-	*/
 	memcpy(b,p,6);
 	b=&b[6];
 	memcpy(b,p->data,len-6);
@@ -937,10 +893,7 @@ l_list* read_ack(channel *canale, l_list *ack_list,int *ack_lock)
 #endif
 
 	
-	if(canale==NULL || ack_list==NULL)
-		e_fatal("NULL pointer",0);
-	
-
+	if(canale==NULL || ack_list==NULL) e_fatal("NULL pointer",0);
 							
 	memset(read_buffer,0x00,6);
 	memset(&now,0x00,sizeof(struct timeval));
@@ -1008,7 +961,7 @@ l_list* read_ack(channel *canale, l_list *ack_list,int *ack_lock)
 	{
 		if(p->type==QUIT)
 		{
-		printf("sono su quit \n");
+			printf("sono su quit \n");
 			canale->available=QUIT;
 			p=delete_packet(p);
 			return ack_list;
@@ -1042,10 +995,7 @@ l_list* read_ack(channel *canale, l_list *ack_list,int *ack_lock)
 #endif
 			
 	/*search for recived ack*/
-/*#ifndef PROXY_BIG*/
-/*#else*/
 	check=search_serial(ack_list,p->serial);
-/*#endif*/
 
 #ifdef PROXY_DEBUG
 	printf(RED"check is %d \n"NORMAL,check);
@@ -1058,8 +1008,7 @@ l_list* read_ack(channel *canale, l_list *ack_list,int *ack_lock)
 		memset(read_buffer,0x00,6);
 		return ack_list;
 	}
-	else	/* prima di cancellare prendere il tempo aggiornare le variabili 
-							relative alla quantita' di byte disponibili inviabili e all'aumento e diminuzione di velociota'*/
+	else	
 	{
 		memset(&diff,0x00,sizeof(struct timeval));
 		
@@ -1136,9 +1085,6 @@ l_list* read_ack(channel *canale, l_list *ack_list,int *ack_lock)
 		if(ack_list==NULL)/*if is the only ack remake linked_list*/
 			ack_list=new_linked(ack_list);
 		
-
-
-
 		p=delete_packet(p);
 		if(p!=NULL)
 			e_fatal("i can not delete packet",0);
@@ -1262,7 +1208,7 @@ queue* send_data(queue *q,l_list *ack_list,channel *canale,int *serial,int *res)
 	packet *p=NULL;
 /*	int check=0;*/
 	int myerror=0;
-	byte * mybyte=NULL;
+	/*byte * mybyte=NULL;*/
 	struct ack_W *ack=NULL;
 	int size=0;
 	struct timeval now;
@@ -1349,7 +1295,7 @@ queue* send_data(queue *q,l_list *ack_list,channel *canale,int *serial,int *res)
 		
 		
 		
-		mybyte=NULL;
+		/*mybyte=NULL;*/
 #ifdef PROXY_DEBUG
 		printf("prima di send i is %d \n",i);
 		fflush(stdout);

@@ -255,7 +255,7 @@ int add_node(l_list *head, l_list *node)
 /*add one node at index index*/
 l_list* add_node_index(l_list *head,l_list *node,int index)
 {
-	l_list * start=NULL;
+	/*l_list * start=NULL;*/
 	l_list *now=NULL;
 	l_list *prev=NULL;
 	int i=0;
@@ -271,25 +271,22 @@ l_list* add_node_index(l_list *head,l_list *node,int index)
 		node->next=head;
 		return node;
 	}
-	else
-	{		
-		start=head;
-		now=head;
-		for(i=0;i<index;i++)
-		{
-			prev=now;
-			now=now->next;
-			if(now==NULL && i!=index-1)break;
-		}
-		if(i!=index)e_fatal("index is out of linked",0);
-			
-		prev->next=node;
-		node->next=now;
-		now=NULL;
-		prev=NULL;
-		return head;		
+		
+	/*start=head;*/
+	now=head;
+	for(i=0;i<index;i++)
+	{
+		prev=now;
+		now=now->next;
+		if(now==NULL && i!=index-1)break;
 	}
-	
+	if(i!=index)e_fatal("index is out of linked",0);
+			
+	prev->next=node;
+	node->next=now;
+	now=NULL;
+	prev=NULL;
+	return head;	
 }
 /*print linked list*/
 void print_linked(l_list *head)
