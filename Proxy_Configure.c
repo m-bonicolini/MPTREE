@@ -10,6 +10,15 @@
 #include "Message.c"
 
 static int strategy=0;
+#define LP32   32
+#define ILP32  33
+#define LP64   64
+#define ILP64  65
+#define NOT_SUPPORTED -1
+
+#define IS_32BIT(cpu) (cpu==LP32 || cpu==ILP32)
+#define IS_64BIT(cpu) (cpu==LP64 || cpu==ILP64)
+
 
 /* Assumed char==8 bits*/
 static int os_cpu_model()
@@ -18,15 +27,15 @@ static int os_cpu_model()
 	const unsigned short int my_long=sizeof(unsigned long);
 	const unsigned short int my_pointer=sizeof(void*);
 
-	if((my_int==2)&&(my_long==4)&&(my_pointer==4))
-	return 32; /*LP32 model*/
-	else if((my_int==4)&&(my_pointer==4)&&(my_long==4))
-			return 33; /*ILP32 model*/
-	else if((my_int==4)&&(my_pointer==8)&&(my_long==8))
-			return 64;/*LP64 model*/
-	else if((my_int==8)&&(my_pointer==8)&&(my_long==8))
-			return 65;/*ILP64 model*/
-	else return -1; /*error*/
+	if((my_int==2)&&(my_long==4)&&(my_pointer==4))		return LP32;  	/*LP32 model*/
+	
+	if((my_int==4)&&(my_pointer==4)&&(my_long==4))		return ILP32; 	/*ILP32 model*/
+	
+	if((my_int==4)&&(my_pointer==8)&&(my_long==8))		return LP64;	/*LP64 model*/
+	
+	if((my_int==8)&&(my_pointer==8)&&(my_long==8))		return ILP64;	/*ILP64 model*/
+	
+	return NOT_SUPPORTED; /*error*/
 }
 
 /*This function return 1
@@ -35,30 +44,28 @@ static int is_big()
 {
 	const int p_model=os_cpu_model();
 	int i=0;
-	unsigned long int number=1;
-
+	unsigned long int number=0;
 	unsigned char *p=NULL;
 
-	if(p_model==-1) /*invalid processor model*/
-	return -1;/*error*/
-	else
+	if(p_model==NOT_SUPPORTED) return NOT_SUPPORTED;
+
+	number=1;
 	p=(unsigned char*)&number;
-	/*32 bit cpu*/
-	if(p_model==32 || p_model==33)
+	
+	if(IS_32BIT(p_model))
 	{
-		if(p[3]==1 && p[2]==0 && p[1]==0 && p[0]==0)  /*|0|0|0|1| big endian*/
-		return 1;/*true*/
+		if(p[3]==1 && p[2]==0 && p[1]==0 && p[0]==0) 
+		return 1;  /*|0|0|0|1| big endian*/
 	}
-	/*64 bit cpu*/
-	if(p_model==64 || p_model==65 )
+	
+	if(IS_64BIT(p_model))
 	{
-		if(p[7]==1)			/*|0|0|0|0|0|0|0|1| big endian*/
+		if(p[7]==1)			
 		{
 			for(i=6;i>=0;i--)
-			{
 				if(p[i]!=0)return 0;
-			}
-			return 1;
+			
+			return 1; /*|0|0|0|0|0|0|0|1| big endian*/
 		}
 	}
 	return 0;/*false*/
@@ -71,9 +78,8 @@ static unsigned int sum(char *s)
 	int sum=0;
 
 	for(i=0;i<strlen(s);i++)
-	{
 		sum=sum+s[i];
-	}
+	
 	return sum;
 }
 
@@ -102,12 +108,12 @@ static void check_flag(unsigned int mysum,char *s,FILE *f)
 		{
 			if(strlen(s)==3 && s[0]=='O'&&s[1]=='S'&&s[2]=='X')
 			{
-				#if defined(__APPLE__) && (_POSIX_VERSION==200112L)	  
+#if defined(__APPLE__) && (_POSIX_VERSION==200112L)	  
 				fputs("#define PROXY_OSX 1\n",f);
 				msg_ok("APPLE/OSX FLAG");
-				#else
+#else
 				e_warning("OS is not APPLE/OSX",0);
-				#endif
+#endif
 			}
 			else
 			{
@@ -119,13 +125,13 @@ static void check_flag(unsigned int mysum,char *s,FILE *f)
 		{
 			if(strlen(s)==3 && s[0]=='W'&&s[1]=='I'&&s[2]=='N')
 			{
-				#if defined(_WIN32) || defined(__WIN32__) ||defined(_WIN64) || defined(__WIN64__)
+#if defined(_WIN32) || defined(__WIN32__) ||defined(_WIN64) || defined(__WIN64__)
 				fputs("#define PROXY_WIN 1\n",f);
 				e_warning("WIN flag enable, please change your os :P",0);
 				fflush(stdout);
-				#else
+#else
 				e_warning("WIN , bad flag ",0);
-				#endif
+#endif
 			}
 			else
 			{
@@ -138,12 +144,12 @@ static void check_flag(unsigned int mysum,char *s,FILE *f)
 		{
 			if(strlen(s)==3 && s[0]=='B'&&s[1]=='S'&&s[2]=='D')
 			{
-				#if defined(__NetBSD__)||defined( __OpenBSD__)|| defined(__FreeBSD__)
+#if defined(__NetBSD__)||defined( __OpenBSD__)|| defined(__FreeBSD__)
 				fputs("#define PROXY_BSD 1\n",f);
 				msg_ok("BSD flag enable");
-				#else
+#else
 				e_warning("non BSD ",0);
-				#endif
+#endif
 			}
 			else
 			{
@@ -297,9 +303,9 @@ int main(int argc, char *argv[])
 
 	msg_help("This file write Proxy_config.h header");
 #if	!defined(__STDC__)
-		e_fatal("Yor compiler is not conform to ANSI C89",0);
+	e_fatal("Yor compiler is not conform to ANSI C89",0);
 #else
-		msg_ok("ANSI C89 conform");
+	msg_ok("ANSI C89 conform");
 #endif
 
 
@@ -325,17 +331,17 @@ int main(int argc, char *argv[])
 
 		switch(cpu)
 		{
-			case 32:
+			case LP32:
 			{
 				fputs("#define PROXY_LP32 1\n",arch_file);
 				msg_ok("32 bit cpu , LP32 System");
 			}break;
-			case 64:
+			case LP64:
 			{
 				fputs("#define PROXY_LP64 1\n",arch_file);
 				msg_ok("64 bit cpu ,LP64 System");
 			}break;
-			case 65:
+			case ILP64:
 			{
 				fputs("#define PROXY_ILP64 1\n",arch_file);
 				msg_ok("64 bit cpu , ILP64 System");
@@ -359,6 +365,7 @@ int main(int argc, char *argv[])
 		e_fatal("Error for write file",myerror);
 		return 0;
 	}
+	
 	if(argc>1)
 	{
 		for(i=1;i<argc;i++)
@@ -366,6 +373,7 @@ int main(int argc, char *argv[])
 			check_flag(sum(argv[i]),argv[i],arch_file);
 		}
 	}
+	
 	if(is_big())
 	{
 		fputs("#define PROXY_BIG 1\n",arch_file);

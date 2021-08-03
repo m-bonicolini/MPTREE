@@ -13,6 +13,7 @@
 #ifndef MESSAGE_H
 #error No Message.h header file
 #endif
+
 /*Function for warning message*/
 void e_warning(const char *msg,int myerror)
 {
