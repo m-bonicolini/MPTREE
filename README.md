@@ -5,7 +5,10 @@ It is a prototype of a multihoming proxy written in C. The goal is to implement 
 The program run in Linux,NetBSD,FreeBSD,OpenBSD and MAC OS X. The project may be a prototype for a research in the multihoming network.
 
 ## Current Status
-Proxy_sender is a C language net utility that communicate with Proxy_receiver. An application should connect to Proxy_sender and send packet to it. Proxy_sender make a connect to Proxy_receiver and Proxy_receiver make a connect to the server of the client application. If Proxy_sender is connected to a multiple channel network the communication is multihomed and all connection channel are used for the client session. At the moment the communication from client to server is half-duplex because a better sending strategy is needed to finish this development phase. So if you want to test the proxy you need to write a dummy half-duplex TCP client. The numbers of channels supported is three and in the development phase a network simulator is used (see the following sections of this README).
+Proxy_sender is a C language net utility that communicate with Proxy_receiver. An application should connect to Proxy_sender and send packet to it. Proxy_sender make a connect to Proxy_receiver and Proxy_receiver make a connect to the server of the client application. 
+If Proxy_sender is connected to a multiple channel network the communication is multihomed and all connection channel are used for the client session. 
+
+At the moment the communication from client to server is half-duplex because a better sending strategy is needed to finish this development phase. So if you want to test the proxy you need to write a dummy half-duplex TCP client. The numbers of channels supported is three and in the development phase a network simulator is used (see the following sections of this README).
 
 ## Congestion Control
 
